@@ -57,7 +57,11 @@ class LDAPSource(Source):
         verbose_name=_("Addition Group DN"),
         blank=True,
     )
-
+    ciphers = models.TextField(
+        default="ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:ECDH+AESGCM:DH+AESGCM:ECDH+AES:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!eNULL:!MD5:!DSS",
+        blank=True,
+        help_text="Ciphers you want to use. (e.g ECDHE+AESGCM:ECDHE+CHACHA20)"
+    )
     user_object_filter = models.TextField(
         default="(objectClass=person)",
         help_text=_("Consider Objects matching this filter to be Users."),
@@ -110,8 +114,9 @@ class LDAPSource(Source):
         """Get LDAP Server/ServerPool"""
         servers = []
         tls = Tls()
+        print(self.ciphers)
         if self.peer_certificate:
-            tls = Tls(ca_certs_data=self.peer_certificate.certificate_data, validate=CERT_REQUIRED)
+            tls = Tls(ca_certs_data=self.peer_certificate.certificate_data, validate=CERT_REQUIRED, ciphers=self.ciphers)
         kwargs = {
             "get_info": ALL,
             "connect_timeout": LDAP_TIMEOUT,
